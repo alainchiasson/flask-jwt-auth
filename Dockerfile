@@ -9,7 +9,7 @@ RUN apt-get update &&\
 
 COPY requirements.txt .
 COPY app.py .
-COPY user.json .
+COPY *.json .
 
 RUN pip install -r requirements.txt
 
