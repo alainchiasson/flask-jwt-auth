@@ -2,7 +2,7 @@
 
 These are notes from going through the tutorial at : https://www.bacancytechnology.com/blog/flask-jwt-authentication
 
-# Starting Demo
+# Starting Demo Environment
 
 The original demo was using Postman to do the requests. I just use curl as it makes everything explicit. To simplify, I will typically connect to the docker container to do the qureies on localhost. 
 
@@ -18,7 +18,9 @@ Next we can exec in ( shell in ) to run the remaining commands by hand:
 docker exec -it jwt /bin/bash
 ```
 
-Register the user:
+# User Access provisioning
+
+Now we must register the user. The credentials are in the user.json payload (user and password):
 
 ```
 curl -X POST -H "Content-Type: application/json" --data "@user.json"  http://localhost:5000/register
@@ -45,9 +47,11 @@ Returned :
 }
 ```
 
+We see our use is in the database with a hashed password and a generated Unique ID.
+
 # Authenticate and perform actions
 
-login to get a session :
+login using basic auth to get a session :
 
 ```
 curl -v -X POST  http://alain:pwd@localhost:5000/login
