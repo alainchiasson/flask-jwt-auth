@@ -2,7 +2,21 @@
 
 These are notes from going through the tutorial at : https://www.bacancytechnology.com/blog/flask-jwt-authentication
 
-# Not using postman 
+# Starting Demo
+
+The original demo was using Postman to do the requests. I just use curl as it makes everything explicit. To simplify, I will typically connect to the docker container to do the qureies on localhost. 
+
+So we will need to build and start the image :
+
+```
+docker build -t flask-jwt-auth:local .
+docker run -it --rm -p 5000:5000 --name jwt flask-jwt-auth:local
+```
+Next we can exec in ( shell in ) to run the remaining commands by hand:
+
+```
+docker exec -it jwt /bin/bash
+```
 
 Register the user:
 
