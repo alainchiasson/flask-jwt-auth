@@ -6,11 +6,15 @@ These are notes from going through the tutorial at : https://www.bacancytechnolo
 
 Register the user:
 
-    curl -X POST -H "Content-Type: application/json" --data "@user.json"  http://localhost:5000/register
+```
+curl -X POST -H "Content-Type: application/json" --data "@user.json"  http://localhost:5000/register
+```
 
 We can view the user data - this is simple data :
 
-    root@021fc1b9dc40:/usr/src# curl -X GET  http://localhost:5000/users
+```
+curl -X GET  http://localhost:5000/users
+```
 
 Returned : 
 
@@ -31,7 +35,9 @@ Returned :
 
 login to get a session :
 
-    curl -v -X POST  http://alain:pwd@localhost:5000/login
+```
+curl -v -X POST  http://alain:pwd@localhost:5000/login
+```
 
 In the rerturn, you get a token:
 
@@ -43,19 +49,27 @@ In the rerturn, you get a token:
 
 so use it to push data:
 
-    curl -X POST -H "x-access-tokens: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJsaWNfaWQiOiJhMDk4NTA1NC0xM2Q1LTQzMjktYjc5My03YThlODE1MTZiZGUiLCJleHAiOjE2NjMyNDA2ODh9.1qLWmpYSiTutw2I2aeTGZpQRb3iAogUgoH4-ih9qQn8"  -H "Content-Type: application/json" --data "@book1.json" http://localhost:5000/book
+```
+curl -X POST -H "x-access-tokens: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJsaWNfaWQiOiJhMDk4NTA1NC0xM2Q1LTQzMjktYjc5My03YThlODE1MTZiZGUiLCJleHAiOjE2NjMyNDA2ODh9.1qLWmpYSiTutw2I2aeTGZpQRb3iAogUgoH4-ih9qQn8"  -H "Content-Type: application/json" --data "@book1.json" http://localhost:5000/book
+```
 
 Then list the data : 
 
-    curl -X GET -H "x-access-tokens: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJsaWNfaWQiOiJhMDk4NTA1NC0xM2Q1LTQzMjktYjc5My03YThlODE1MTZiZGUiLCJleHAiOjE2NjMyNDA2ODh9.1qLWmpYSiTutw2I2aeTGZpQRb3iAogUgoH4-ih9qQn8"  http://localhost:5000/books
+```
+curl -X GET -H "x-access-tokens: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJsaWNfaWQiOiJhMDk4NTA1NC0xM2Q1LTQzMjktYjc5My03YThlODE1MTZiZGUiLCJleHAiOjE2NjMyNDA2ODh9.1qLWmpYSiTutw2I2aeTGZpQRb3iAogUgoH4-ih9qQn8"  http://localhost:5000/books
+```
 
 But this fails, as it is not authenticated : 
 
-    curl -X GET  http://localhost:5000/books
+```
+curl -X GET  http://localhost:5000/books
+```
 
 Now to delete :
 
-    curl -X DELETE -H "x-access-tokens: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJsaWNfaWQiOiJhMDk4NTA1NC0xM2Q1LTQzMjktYjc5My03YThlODE1MTZiZGUiLCJleHAiOjE2NjMyNDA2ODh9.1qLWmpYSiTutw2I2aeTGZpQRb3iAogUgoH4-ih9qQn8"  http://localhost:5000/books/1
+```
+curl -X DELETE -H "x-access-tokens: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJwdWJsaWNfaWQiOiJhMDk4NTA1NC0xM2Q1LTQzMjktYjc5My03YThlODE1MTZiZGUiLCJleHAiOjE2NjMyNDA2ODh9.1qLWmpYSiTutw2I2aeTGZpQRb3iAogUgoH4-ih9qQn8"  http://localhost:5000/books/1
+```
 
 Ok that last one has an error that is fixable : sqlalchemy.exc.InvalidRequestError: Object '<Books at 0x7f2634ccff10>' is already attached to session '13' (this is '14')
 
@@ -64,27 +78,38 @@ Ok that last one has an error that is fixable : sqlalchemy.exc.InvalidRequestErr
 
 This is an overly simplified example, but. after the user is registered/provisionned. On login, the hash of the sent password is verified with the hash stored in the DB ( not this is not Encrypted ):
 
-   if check_password_hash(user.password, auth.password):
-       token = jwt.encode({'public_id' : user.public_id, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=45)}, app.config['SECRET_KEY'], "HS256")
+```
+
+if check_password_hash(user.password, auth.password):
+   token = jwt.encode({'public_id' : user.public_id, 'exp' : datetime.datetime.utcnow() + datetime.timedelta(minutes=45)}, app.config['SECRET_KEY'], "HS256")
  
-       return jsonify({'token' : token})
+return jsonify({'token' : token})
+```
 
 If this correct, a JSON token is created with the PUBLIC user ID (generated at registration) and a 45 minute expiration. This token is returned.
 
 On subsequent calls, the validity of the token is tested, This will get used by the decorator function :
 
-    data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+```
+data = jwt.decode(token, app.config['SECRET_KEY'], algorithms=["HS256"])
+```
 
-The extracted data  is used :
+The key data is extracted from the token (Internal ID) and used to fetch additional data (User ID) :
 
-    current_user = Users.query.filter_by(public_id=data['public_id']).first()
+```
+current_user = Users.query.filter_by(public_id=data['public_id']).first()
 
-    return f(current_user, *args, **kwargs)
+return f(current_user, *args, **kwargs)
+```
 
 And the other functions will use the extracted data. :
 
-    @token_required
-    def create_book(current_user):
+```
+@token_required
+def create_book(current_user):
+```
+
+In this case, the data is simple, but when paired with an authorisation system, it may be more complex. The key here - the JWT is considered " untamperable" - but any data in it must be considered public and it can always be read.
 
 # Other Notes
 
