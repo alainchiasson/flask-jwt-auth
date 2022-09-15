@@ -1,0 +1,8 @@
+flask
+pyjwt
+datetime
+uuid
+Flask-SQLAlchemy
+jinja2
+werkzeug
+itsdangerous
